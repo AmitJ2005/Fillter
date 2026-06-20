@@ -14,19 +14,44 @@ def initialize_ticker(stock_symbol):
     global stock_ticker
     stock_ticker = yf.Ticker(stock_symbol)
 
+def _statement_to_dict(frame):
+    """Convert a yfinance financial DataFrame into a JSON-friendly structure.
+
+    Returns {'columns': [periods...], 'rows': [{'label': ..., 'values': [...]}]}.
+    Raw numbers (absolute INR) are kept so the frontend can format them
+    (e.g. into ₹ Crore). NaNs become None.
+    """
+    if frame is None or getattr(frame, 'empty', True):
+        return {'columns': [], 'rows': []}
+
+    columns = []
+    for col in frame.columns:
+        try:
+            columns.append(col.strftime('%b %Y'))
+        except AttributeError:
+            columns.append(str(col))
+
+    rows = []
+    for label, series in frame.iterrows():
+        values = [None if pd.isna(v) else float(v) for v in series.tolist()]
+        rows.append({'label': str(label), 'values': values})
+
+    return {'columns': columns, 'rows': rows}
+
 def stock_info():
     global stock_ticker
     try:
         data = {
-            'Income_Statement': stock_ticker.income_stmt.to_html(),
-            'Quarterly_Statement': stock_ticker.quarterly_income_stmt.to_html(),
-            'Balance_Sheet': stock_ticker.balance_sheet.to_html(),
-            'Quarterly_Balance': stock_ticker.quarterly_balance_sheet.to_html(),
-            'Cashflow': stock_ticker.cashflow.to_html(),
+            'Income Statement': _statement_to_dict(stock_ticker.income_stmt),
+            'Quarterly Income': _statement_to_dict(stock_ticker.quarterly_income_stmt),
+            'Balance Sheet': _statement_to_dict(stock_ticker.balance_sheet),
+            'Quarterly Balance': _statement_to_dict(stock_ticker.quarterly_balance_sheet),
+            'Cash Flow': _statement_to_dict(stock_ticker.cashflow),
         }
         return data
     except Exception as e:
-        return f"Error fetching stock info for {stock_symbol}: {e}"
+        print(f"Error fetching stock info for {stock_symbol}: {e}")
+        return None
         
 def fetch_info():
     global stock_ticker
@@ -111,18 +136,6 @@ def handle_selected_stock(selected_stock):
 @app.route('/')
 def index():
     return render_template('index.html')
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-@app.route('/sign_up')
-def sign_up():
-    return render_template('sign_up.html')
-
-@app.route('/login')
-def login():
-    return render_template('Login.html')
 
 @app.route('/stock_names.json')
 def get_stock_names():

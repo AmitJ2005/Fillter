@@ -1012,3 +1012,98 @@ flex: 0 0 calc(33.33% - 20px); /* Adjust the width as per your requirement */
   .content {
     text-align: center;
   }
+
+/* ===== Financial Statements (tabbed tables) ===== */
+.fin-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.fin-head h2 { margin: 0; }
+.fin-unit { font-size: 0.85rem; opacity: 0.7; }
+
+.fin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+.fin-tab {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.fin-tab:hover { background-color: #e0e0e0; }
+.fin-tab.active {
+  background-color: rgb(207, 29, 82);
+  color: #fff;
+}
+
+/* Horizontal scroll wrapper keeps wide statements on-screen */
+.fin-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.fin-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px;
+  font-size: 14px;
+  background-color: #fff;
+}
+.fin-table th,
+.fin-table td {
+  padding: 12px 16px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid #eee;
+}
+.fin-table thead th {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #333;
+}
+/* Line-item names: pinned to the left while scrolling sideways */
+.fin-table .fin-metric {
+  position: sticky;
+  left: 0;
+  text-align: left;
+  background-color: #fff;
+  font-weight: 500;
+  z-index: 1;
+}
+.fin-table thead .fin-metric {
+  background-color: #fafafa;
+  z-index: 2;
+}
+.fin-table tbody tr:nth-child(even) td,
+.fin-table tbody tr:nth-child(even) .fin-metric { background-color: #f7f7f7; }
+.fin-table tbody tr:hover td,
+.fin-table tbody tr:hover .fin-metric { background-color: #ffeef3; }
+.fin-table td.neg { color: #d11d44; }
+.fin-empty { padding: 20px; text-align: center; opacity: 0.7; }
+
+/* Dark mode */
+body.dark-mode .fin-tab { background-color: #1a1a5a; color: #d9d9d9; }
+body.dark-mode .fin-tab:hover { background-color: #25257a; }
+body.dark-mode .fin-tab.active { background-color: rgb(207, 29, 82); color: #fff; }
+body.dark-mode .fin-table { background-color: #10103f; color: #d9d9d9; }
+body.dark-mode .fin-table th,
+body.dark-mode .fin-table td { border-bottom: 1px solid #22225a; }
+body.dark-mode .fin-table thead th { background-color: #161650; color: #fff; }
+body.dark-mode .fin-table .fin-metric { background-color: #10103f; }
+body.dark-mode .fin-table thead .fin-metric { background-color: #161650; }
+body.dark-mode .fin-table tbody tr:nth-child(even) td,
+body.dark-mode .fin-table tbody tr:nth-child(even) .fin-metric { background-color: #14144a; }
+body.dark-mode .fin-table tbody tr:hover td,
+body.dark-mode .fin-table tbody tr:hover .fin-metric { background-color: #2a1030; }
+body.dark-mode .fin-table td.neg { color: #ff6b8a; }

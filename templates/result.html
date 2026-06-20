@@ -30,6 +30,7 @@
             <li><a href="#third-visualization">Year Return</a></li>
             <li><a href="#fourth-visualization">Month Return</a></li>
             <li><a href="#second-visualization">Same Month</a></li>
+            <li><a href="#financials">Financials</a></li>
             <li><a href="#about">About</a></li>
         </ul>
     </div>
@@ -61,6 +62,7 @@
         var monthlyData = {{ data_monthly|tojson|safe }};
         var yearlyData = {{ data_yearly|tojson|safe }};
         var data_yearly = {{ data_monthly | tojson | safe }};
+        var financials = {{ stock_information | tojson | safe }};
     </script>
     <header>
         <!-- Logo -->
@@ -304,19 +306,19 @@
         <strong>About:</strong> {{ result_info["longBusinessSummary"] }}
     </div>
 
-    <div class="center-container">
-        {% for key, value in stock_information.items() %}
-            <div class="container visualization-container">
-                <h2 class="content">{{ key }}</h2>
-                <div class="content">
-                    {{ value | safe }}
-                </div>
-            </div>
-        {% endfor %}
+    <!-- Financial Statements (tabbed, formatted in ₹ Crore) -->
+    <div id="financials" class="container visualization-container">
+        <div class="fin-head">
+            <h2>Financial Statements</h2>
+            <span class="fin-unit">All figures in ₹ Crore</span>
+        </div>
+        <div id="finTabs" class="fin-tabs"></div>
+        <div id="finTableWrap" class="fin-table-wrap"></div>
     </div>
 
 
     <script src="../static/chart.js"></script>
-    <script src="../static/script.js"></script> 
+    <script src="../static/script.js"></script>
+    <script src="../static/financials.js"></script>
 </body>
 </html>
