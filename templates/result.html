@@ -4,18 +4,32 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Data Visualization</title>
+    <title>{{ result_info["Company Name"] }} · Stock Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='result.css') }}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='result.css') }}">
     <link rel="icon" href="../static/image/logo_for_tab.png">
+
+    <script>
+        var dailyLabels = {{ labels | safe }};
+        var dailyData = {{ data | safe }};
+        var monthlyData = {{ data_monthly|tojson|safe }};
+        var yearlyData = {{ data_yearly|tojson|safe }};
+        var data_yearly = {{ data_monthly | tojson | safe }};
+        var financials = {{ stock_information | tojson | safe }};
+        var fundamentals = {{ result_info | tojson | safe }};
+    </script>
 </head>
 <body>
+    <!-- Loading spinner -->
     <div class="loader" id="loader">
         <div class="loader__bar"></div>
         <div class="loader__bar"></div>
@@ -24,301 +38,171 @@
         <div class="loader__bar"></div>
         <div class="loader__ball"></div>
     </div>
-    <div id="sidebar">
-        <ul>
-            <li><a href="#first-visualization">Chart</a></li>
-            <li><a href="#third-visualization">Year Return</a></li>
-            <li><a href="#fourth-visualization">Month Return</a></li>
-            <li><a href="#second-visualization">Same Month</a></li>
-            <li><a href="#financials">Financials</a></li>
-            <li><a href="#about">About</a></li>
-        </ul>
-    </div>
+
+    <!-- Top bar -->
+    <header class="topbar">
+        <a href="/" class="topbar__brand" aria-label="Fillter home">
+            <i class="fas fa-filter wordmark__icon"></i>
+            <span class="wordmark"><span class="wordmark__a">Fill</span><span class="wordmark__b">ter</span></span>
+        </a>
+
+        <div id="searchContainer">
+            <input type="text" id="searchInput" placeholder="Search a stock…">
+            <div id="cancelButton">&#10006;</div>
+            <ul id="suggestionList"></ul>
+        </div>
+
+        <div class="topbar__right">
+            <nav class="navbar">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/about">About</a></li>
+                </ul>
+            </nav>
+
+            <input id="theme" class="theme-checkbox" type="checkbox" role="switch" name="theme" aria-label="Toggle dark mode">
+            <label for="theme" class="theme-toggle" title="Toggle dark mode">
+                <i class="fas fa-moon theme-toggle__moon"></i>
+                <i class="fas fa-sun theme-toggle__sun"></i>
+            </label>
+        </div>
+    </header>
+
+    <main class="page">
+        <!-- Company header -->
+        <section class="hero card">
+            <div class="hero__info">
+                <h1 class="hero__name">{{ result_info["Company Name"] }}</h1>
+                <div class="hero__tags">
+                    {% if result_info["Sector"] %}<span class="tag">{{ result_info["Sector"] }}</span>{% endif %}
+                    {% if result_info["Industry"] %}<span class="tag">{{ result_info["Industry"] }}</span>{% endif %}
+                    {% if result_info["Website"] %}<a class="tag tag--link" href="{{ result_info['Website'] }}" target="_blank" rel="noopener">Website <i class="fas fa-external-link-alt"></i></a>{% endif %}
+                </div>
+            </div>
+            <div class="hero__price">
+                <span class="hero__price-label">Current Price</span>
+                <span class="hero__price-value">₹{{ result_info["Current Price"] }}</span>
+                <span id="recoBadge" class="reco-badge" hidden></span>
+            </div>
+        </section>
+
+        <!-- Section navigation -->
+        <nav class="subnav">
+            <a href="#first-visualization">Price</a>
+            <a href="#metrics">Key Metrics</a>
+            <a href="#third-visualization">Yearly</a>
+            <a href="#fourth-visualization">Monthly</a>
+            <a href="#second-visualization">Seasonality</a>
+            <a href="#financials">Financials</a>
+            <a href="#about">About</a>
+        </nav>
+
+        <!-- Key metrics (curated highlights) -->
+        <section id="metrics">
+            <div id="keyMetrics" class="metrics-grid"></div>
+
+            <!-- Detailed fundamentals (expandable) -->
+            <div class="card fund-card">
+                <div class="card__head">
+                    <h2 class="card__title">Detailed Fundamentals</h2>
+                    <button type="button" id="fundToggle" class="ghost-btn" aria-expanded="false">
+                        Show all <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div id="fundamentalsDetail" class="fund-detail" hidden></div>
+            </div>
+        </section>
+
+        <!-- Price history -->
+        <section id="first-visualization" class="card">
+            <div class="card__head">
+                <h2 class="card__title">Price History</h2>
+                <div id="timeRangeSelector" class="segmented">
+                    <button type="button" class="btn" data-value="week">1W</button>
+                    <button type="button" class="btn" data-value="month">1M</button>
+                    <button type="button" class="btn" data-value="6months">6M</button>
+                    <button type="button" class="btn" data-value="year">1Y</button>
+                    <button type="button" class="btn" data-value="3years">3Y</button>
+                    <button type="button" class="btn" data-value="5years">5Y</button>
+                    <button type="button" class="btn" data-value="10years">10Y</button>
+                    <button type="button" class="btn" data-value="all">All</button>
+                </div>
+            </div>
+            <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+        </section>
+
+        <!-- Yearly returns -->
+        <section id="third-visualization" class="card">
+            <div class="card__head">
+                <h2 class="card__title">Yearly Return <span class="card__sub">(% change per year)</span></h2>
+            </div>
+            <div class="chart-wrap"><canvas id="yearlyChart"></canvas></div>
+        </section>
+
+        <!-- Monthly returns within a year -->
+        <section id="fourth-visualization" class="card">
+            <div class="card__head">
+                <h2 class="card__title">Monthly Return</h2>
+                <select id="yearSelect" class="select"></select>
+            </div>
+            <div class="chart-wrap"><canvas id="monthlyYearChart"></canvas></div>
+        </section>
+
+        <!-- Same month across years -->
+        <section id="second-visualization" class="card">
+            <div class="card__head">
+                <h2 class="card__title">Seasonality <span class="card__sub">(same month, every year)</span></h2>
+                <select id="monthSelect" class="select">
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div class="chart-wrap"><canvas id="monthlyChart"></canvas></div>
+        </section>
+
+        <!-- Financial statements (tabbed, formatted in ₹ Crore) -->
+        <section id="financials" class="card">
+            <div class="card__head">
+                <h2 class="card__title">Financial Statements</h2>
+                <span class="card__sub">All figures in ₹ Crore</span>
+            </div>
+            <div id="finTabs" class="fin-tabs"></div>
+            <div id="finTableWrap" class="fin-table-wrap"></div>
+        </section>
+
+        <!-- About -->
+        <section id="about" class="card">
+            <div class="card__head"><h2 class="card__title">About</h2></div>
+            <p class="about__text">{{ result_info["Business Summary"] }}</p>
+        </section>
+    </main>
+
     <script>
-        document.addEventListener('mousemove', function(e) {
-            var sidebar = document.getElementById('sidebar');
-            if (e.clientX < 50) { // If the mouse is within 50px of the left edge
-                sidebar.style.width = '120px'; // Show the sidebar
-            } else {
-                sidebar.style.width = '0'; // Hide the sidebar
-            }
-        });
-        $(document).ready(function(){
-            $('a[href^="#"]').on('click', function(e) {
+        // Smooth scroll for in-page section navigation
+        $(document).ready(function () {
+            $('a[href^="#"]').on('click', function (e) {
                 e.preventDefault();
-
-                var target = this.hash;
-                var $target = $(target);
-
-                $('html, body').animate({
-                    'scrollTop': $target.offset().top - 50 // Subtract 50 pixels
-                }, 1000, 'swing');
+                var $target = $(this.hash);
+                if ($target.length) {
+                    $('html, body').animate({ scrollTop: $target.offset().top - 80 }, 600, 'swing');
+                }
             });
         });
     </script>
-    <script>
-        var dailyLabels = {{ labels | safe }};
-        var dailyData = {{ data | safe }};
-        var monthlyData = {{ data_monthly|tojson|safe }};
-        var yearlyData = {{ data_yearly|tojson|safe }};
-        var data_yearly = {{ data_monthly | tojson | safe }};
-        var financials = {{ stock_information | tojson | safe }};
-    </script>
-    <header>
-        <!-- Logo -->
-        <a href="/">
-            <img src="../static/image/com_name.png" id="companyLogo" alt="Company Logo">
-          </a>
-        <!-- Search container -->
-        <div id="searchContainer">
-            <input type="text" id="searchInput" >
-            <div id="cancelButton">&#10006;</div>
-            <ul id="suggestionList"></ul>
-          </div>
-        <!-- Navigation links -->
-        <nav class="navbar">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About</a></li>
-            </ul>
-        </nav>
-        
-        <div class="theme">
-            <span class="theme__toggle-wrap">
-                <input id="theme" class="theme__toggle" type="checkbox" role="switch" name="theme" value="dark">
-                <span class="theme__fill"></span>
-                <span class="theme__icon">
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                    <span class="theme__icon-part"></span>
-                </span>
-            </span>
-        </div>        
-    </header>
-
-<div class="container basic-details">
-    <div class="centered">
-        <h1>{{ result_info["Company Name"] }}</h1>
-        <h3>₹{{ result_info["currentPrice"] }}</h3>
-    </div>
-    <div class="detail-container">
-
-        <div class="detail-item">
-            <strong>Sector: 🏢</strong> {{ result_info["Sector"] }}
-        </div>
-
-        <div class="detail-item">
-            <strong>Industry: 🏭</strong> {{ result_info["Industry"] }}
-        </div>
-
-        <div class="detail-item">
-            <strong>Website: 🌐</strong>
-                <a href="{{ result_info['Website'] }}" target="_blank">{{ result_info['Website'] }}</a>
-        </div>
-
-        <div class="detail-item">
-            <strong>Total Revenue: 💰</strong> 
-            <span id="formattedTotalRevenue"></span>
-        </div>
-
-        <div class="detail-item">
-            <strong>Enterprise Value: 💸</strong> 
-            <span id="formattedEnterpriseValue"></span>
-        </div>
-
-        <div class="detail-item">
-            <strong>Market Cap: 📈</strong>
-            <span id="formattedMarketCap"></span>
-        </div>
-
-        <div class="detail-item">
-            <strong>Loan: 💳</strong> 
-            <span id="formattedTotalDebt"></span>
-        </div>
-
-        <div class="detail-item">
-            <strong>Cash: 💵</strong> 
-            <span id="formattedTotalCash"></span>
-        </div>
-
-        <div class="detail-item">
-            <strong>Employees: 👥</strong> {{ result_info["Full-Time Employees"] }}
-        </div>
-            
-        <div class="detail-item">
-            <strong>Total Share in Company: 📊</strong> 
-            <span id="formattedTotalShareInCompany"></span>
-        </div>
-        
-        <div class="detail-item">
-            <strong>Share in Market: 📉</strong> 
-            <span id="formattedShareInMarket"></span>
-        </div>
-
-        <script>
-            // General function to format large numbers
-            function formatLargeNumber(number) {
-                if (number === '') {
-                    return 'No data available'; // Return a default value for empty strings
-                } else if (number >= 1e12) {
-                    return (number / 1e12).toFixed(2) + " Trillion"; // Divide by 1 trillion and add 'Trillion'
-                } else if (number >= 1e9) {
-                    return (number / 1e9).toFixed(2) + " Billion"; // Divide by 1 billion and add 'Billion'
-                } else if (number >= 1e6) {
-                    return (number / 1e6).toFixed(2) + " Million"; // Divide by 1 million and add 'Million'
-                } else {
-                    return number.toLocaleString(); // Use comma separator
-                }
-            }
-
-            // Function to update formatted market cap value
-            function updateFormattedMarketCap() {
-                var marketCap = {{ result_info["marketCap"] }}; // Get the market cap value
-                document.getElementById("formattedMarketCap").innerText = formatLargeNumber(marketCap);
-            }
-
-            // Initial call to update formatted market cap value
-            updateFormattedMarketCap();
-
-            // Function to update formatted total debt value
-            function updateFormattedTotalDebt() {
-                var totalDebt = {{ result_info["totalDebt"] }}; // Get the total debt value
-                document.getElementById("formattedTotalDebt").innerText = formatLargeNumber(totalDebt);
-            }
-
-            // Initial call to update formatted total debt value
-            updateFormattedTotalDebt();
-
-            // Function to update formatted total revenue value
-            function updateFormattedTotalRevenue() {
-                var totalRevenue = {{ result_info["totalRevenue"] }}; // Get the total revenue value
-                document.getElementById("formattedTotalRevenue").innerText = formatLargeNumber(totalRevenue);
-            }
-
-            // Initial call to update formatted total revenue value
-            updateFormattedTotalRevenue();
-
-            function updateFormattedTotalCash() {
-                var totalCash = {{ result_info["totalCash"] }}; // Get the total cash value
-                document.getElementById("formattedTotalCash").innerText = formatLargeNumber(totalCash);
-            }
-
-            // Initial call to update formatted total cash value
-            updateFormattedTotalCash();
-
-            // Function to update formatted total share in company value
-            function updateFormattedTotalShareInCompany() {
-                var totalShareInCompany = {{ result_info["Total Share in Company"] }}; // Get the total share in company value
-                document.getElementById("formattedTotalShareInCompany").innerText = formatLargeNumber(totalShareInCompany);
-            }
-
-            // Initial call to update formatted total share in company value
-            updateFormattedTotalShareInCompany();
-
-            // Function to update formatted share in market value
-            function updateFormattedShareInMarket() {
-                var shareInMarket = {{ result_info["share in Market"] }}; // Get the share in market value
-                document.getElementById("formattedShareInMarket").innerText = formatLargeNumber(shareInMarket);
-            }
-
-            // Initial call to update formatted share in market value
-            updateFormattedShareInMarket();
-
-            // Function to update formatted enterprise value
-            function updateFormattedEnterpriseValue() {
-                var enterpriseValue = {{ result_info["enterpriseValue"] }}; // Get the enterprise value
-                document.getElementById("formattedEnterpriseValue").innerText = formatLargeNumber(enterpriseValue);
-            }
-
-            // Initial call to update formatted enterprise value
-            updateFormattedEnterpriseValue();
-
-        </script>
-    </div>
-</div>
-
-
-    <!-- First Visualization: Line Chart -->
-    <div id="first-visualization" class="container visualization-container">
-        <!-- Button group for selecting time range -->
-        <div id="timeRangeSelector" class="btn-group">
-            <button type="button" class="btn btn-primary" data-value="week">1 Week</button>
-            <button type="button" class="btn btn-primary" data-value="month">1 Month</button>
-            <button type="button" class="btn btn-primary" data-value="6months">6 Month</button>
-            <button type="button" class="btn btn-primary" data-value="year">1 Year</button>
-            <button type="button" class="btn btn-primary" data-value="3years">3 Year</button>
-            <button type="button" class="btn btn-primary" data-value="5years">5 Year</button>
-            <button type="button" class="btn btn-primary" data-value="10years">10 Year</button>
-            <button type="button" class="btn btn-primary" data-value="all">All</button>
-        </div>
-
-        <!-- Canvas for displaying the line chart -->
-        <canvas id="dailyChart" width="400" height="100"></canvas>
-    </div>
-
-    <!-- Third Visualization: Bar Chart for Yearly Data -->
-    <div id="third-visualization"  class="container visualization-container">
-        <h2>Yearly Return</h2>
-        <canvas id="yearlyChart" width="400" height="100"></canvas>
-    </div>
-  
-    <!-- Four Visualization: Pie Chart for Yearly Data -->
-    <div id="fourth-visualization"  class="container visualization-container">
-        <div class="flex-container">
-            <h2>Monthly Return</h2>
-            <select id="yearSelect">
-                <!-- Options will be populated dynamically in JavaScript -->
-            </select>
-        </div>
-        <canvas id="monthlyYearChart" width="400" height="100"></canvas>
-    </div>
-
-     <!-- Second Visualization: Bar Chart for Monthly Data -->
-    <div id="second-visualization" class="container visualization-container">
-        <div class="flex-container">
-            <h2>Same Month in Every Year</h2>
-            <select id="monthSelect">
-                <option value="1">January</option>
-                <option value="2">February</option>
-                <option value="3">March</option>
-                <option value="4">April</option>
-                <option value="5">May</option>
-                <option value="6">June</option>
-                <option value="7">July</option>
-                <option value="8">August</option>
-                <option value="9">September</option>
-                <option value="10">October</option>
-                <option value="11">November</option>
-                <option value="12">December</option>
-            </select>
-        </div>
-        <canvas id="monthlyChart" width="400" height="100"></canvas>
-    </div>
-
- 
-    <div id="about" class="About">
-        <strong>About:</strong> {{ result_info["longBusinessSummary"] }}
-    </div>
-
-    <!-- Financial Statements (tabbed, formatted in ₹ Crore) -->
-    <div id="financials" class="container visualization-container">
-        <div class="fin-head">
-            <h2>Financial Statements</h2>
-            <span class="fin-unit">All figures in ₹ Crore</span>
-        </div>
-        <div id="finTabs" class="fin-tabs"></div>
-        <div id="finTableWrap" class="fin-table-wrap"></div>
-    </div>
-
 
     <script src="../static/chart.js"></script>
     <script src="../static/script.js"></script>
     <script src="../static/financials.js"></script>
+    <script src="../static/fundamentals.js"></script>
 </body>
 </html>

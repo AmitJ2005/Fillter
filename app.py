@@ -63,17 +63,80 @@ def fetch_info():
             "Sector": company_info.get("sector", ""),
             "Website": company_info.get("website", ""),
             "Full-Time Employees": company_info.get("fullTimeEmployees", ""),
-            "currentPrice": company_info.get("currentPrice", ""),
-            "marketCap": company_info.get("marketCap", ""),
-            "averageVolume": company_info.get("averageVolume", ""),
-            "totalDebt": company_info.get("totalDebt", ""),
-            "totalRevenue": company_info.get("totalRevenue", ""),
-            "totalCash": company_info.get("totalCash", ""),
-            "freeCashflow": company_info.get("freeCashflow", ""),
-            "longBusinessSummary": company_info.get("longBusinessSummary", ""),
-            "share in Market": company_info.get("floatShares", ""),
-            "Total Share in Company": company_info.get("sharesOutstanding", ""),
-            "enterpriseValue": company_info.get("enterpriseValue", ""),
+            "Business Summary": company_info.get("longBusinessSummary", ""),
+
+            # --- Price & size ---
+            "Current Price": company_info.get("currentPrice", ""),
+            "Market Cap": company_info.get("marketCap", ""),
+            "Enterprise Value": company_info.get("enterpriseValue", ""),
+            "Free Float Shares": company_info.get("floatShares", ""),
+            "Shares Outstanding": company_info.get("sharesOutstanding", ""),
+            "Average Volume": company_info.get("averageVolume", ""),
+            "Beta": company_info.get("beta", ""),
+
+            # --- 52-week / trend context ---
+            "52W High": company_info.get("fiftyTwoWeekHigh", ""),
+            "52W Low": company_info.get("fiftyTwoWeekLow", ""),
+            "50 DMA": company_info.get("fiftyDayAverage", ""),
+            "200 DMA": company_info.get("twoHundredDayAverage", ""),
+            "52W Change %": company_info.get("fiftyTwoWeekChangePercent", ""),
+
+            # --- Valuation ---
+            "Trailing PE": company_info.get("trailingPE", ""),
+            "Forward PE": company_info.get("forwardPE", ""),
+            "Price to Book": company_info.get("priceToBook", ""),
+            "Price to Sales": company_info.get("priceToSalesTrailing12Months", ""),
+            "EV/EBITDA": company_info.get("enterpriseToEbitda", ""),
+            "EV/Revenue": company_info.get("enterpriseToRevenue", ""),
+            "PEG Ratio": company_info.get("trailingPegRatio", ""),
+            "Trailing EPS": company_info.get("trailingEps", ""),
+            "Forward EPS": company_info.get("forwardEps", ""),
+            "Book Value": company_info.get("bookValue", ""),
+
+            # --- Profitability & returns ---
+            "Gross Margin": company_info.get("grossMargins", ""),
+            "EBITDA Margin": company_info.get("ebitdaMargins", ""),
+            "Operating Margin": company_info.get("operatingMargins", ""),
+            "Net Profit Margin": company_info.get("profitMargins", ""),
+            "Return on Equity": company_info.get("returnOnEquity", ""),
+            "Return on Assets": company_info.get("returnOnAssets", ""),
+
+            # --- Growth ---
+            "Revenue Growth": company_info.get("revenueGrowth", ""),
+            "Earnings Growth": company_info.get("earningsGrowth", ""),
+            "Qtrly Earnings Growth": company_info.get("earningsQuarterlyGrowth", ""),
+
+            # --- Financial health ---
+            "Total Revenue": company_info.get("totalRevenue", ""),
+            "EBITDA": company_info.get("ebitda", ""),
+            "Total Debt": company_info.get("totalDebt", ""),
+            "Total Cash": company_info.get("totalCash", ""),
+            "Debt to Equity": company_info.get("debtToEquity", ""),
+            "Current Ratio": company_info.get("currentRatio", ""),
+            "Quick Ratio": company_info.get("quickRatio", ""),
+            "Operating Cash Flow": company_info.get("operatingCashflow", ""),
+            "Free Cash Flow": company_info.get("freeCashflow", ""),
+
+            # --- Dividend ---
+            "Dividend Rate": company_info.get("trailingAnnualDividendRate", ""),
+            "Dividend Yield": company_info.get("trailingAnnualDividendYield", ""),
+            "Last Dividend Value": company_info.get("lastDividendValue", ""),
+            "Last Dividend Date": company_info.get("lastDividendDate", ""),
+
+            # --- Shareholding (promoter/institution proxy) ---
+            "Held % Insiders": company_info.get("heldPercentInsiders", ""),
+            "Held % Institutions": company_info.get("heldPercentInstitutions", ""),
+
+            # --- Governance risk (corporate governance check) ---
+            "Audit Risk": company_info.get("auditRisk", ""),
+            "Board Risk": company_info.get("boardRisk", ""),
+            "Overall Risk": company_info.get("overallRisk", ""),
+
+            # --- Analyst view ---
+            "Recommendation": company_info.get("recommendationKey", ""),
+            "Target Mean Price": company_info.get("targetMeanPrice", ""),
+            "Target Median Price": company_info.get("targetMedianPrice", ""),
+            "No. of Analysts": company_info.get("numberOfAnalystOpinions", ""),
         }
         company_officers = []
         for officer in company_info.get("companyOfficers", []):
@@ -136,6 +199,10 @@ def handle_selected_stock(selected_stock):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 @app.route('/stock_names.json')
 def get_stock_names():

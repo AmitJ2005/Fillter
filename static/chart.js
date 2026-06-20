@@ -22,20 +22,28 @@ buttons.forEach(function(button) {
 });
 // First Visualization: Line Chart
 var dailyCtx = document.getElementById('dailyChart').getContext('2d');
+var priceGradient = dailyCtx.createLinearGradient(0, 0, 0, 340);
+priceGradient.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+priceGradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
 var dailyChart = new Chart(dailyCtx, {
     type: 'line',
     data: {
         labels: filteredLabels, // Use filteredLabels here
         datasets: [{
-            label: 'Data',
+            label: 'Price',
             data: filteredData, // Use filteredData here
-            borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1,
-            fill: false,
+            borderColor: '#2563eb',
+            backgroundColor: priceGradient,
+            borderWidth: 2,
+            tension: 0.25,
+            fill: true,
             pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: '#2563eb',
         }]
     },
     options: {
+        maintainAspectRatio: false,
         animation: {
             duration: 3500,
         },
@@ -290,6 +298,7 @@ var monthlyChart = new Chart(monthlyCtx, {
         }]
     },
     options: {
+        maintainAspectRatio: false,
         animation: {
             duration: 3000
         },
@@ -320,7 +329,7 @@ document.getElementById('monthSelect').addEventListener('change', function() {
         return item.Returns;
     });
     monthlyChart.data.datasets[0].backgroundColor = filteredData.map(function(item) {
-        return item.Returns >= 0 ? 'green' : 'red';
+        return item.Returns >= 0 ? '#16a34a' : '#dc2626';
     });
     monthlyChart.update();
 });
@@ -339,11 +348,12 @@ var yearlyChart = new Chart(yearlyCtx, {
             }),
             backgroundColor: yearlyData.map(function(item) { 
                 // Retain original colors based on positive/negative values
-                return item.Returns >= 0 ? 'green' : 'red'; 
+                return item.Returns >= 0 ? '#16a34a' : '#dc2626'; 
             })
         }]
     },
     options: {
+        maintainAspectRatio: false,
         animation: {
             duration: 3000
         },
@@ -384,6 +394,7 @@ var monthlyYearChart = new Chart(monthlyCtx, {
         }]
     },
     options: {
+        maintainAspectRatio: false,
         animation: {
             duration: 3000
         },
@@ -425,7 +436,7 @@ document.getElementById('yearSelect').addEventListener('change', function() {
         return item.Returns;
     });
     var backgroundColors = filteredData.map(function(item) {
-        return item.Returns >= 0 ? 'green' : 'red';
+        return item.Returns >= 0 ? '#16a34a' : '#dc2626';
     });
     monthlyYearChart.data.labels = labels;
     monthlyYearChart.data.datasets[0].data = returns;
@@ -437,9 +448,34 @@ document.getElementById('yearSelect').addEventListener('change', function() {
 document.getElementById('yearSelect').dispatchEvent(new Event('change'));
 
 
-// dark mode 
+// dark mode
+// Keep chart axis text / gridlines readable in both themes
+var financeCharts = [dailyChart, monthlyChart, yearlyChart, monthlyYearChart];
+function applyChartTheme(isDark) {
+    var tickColor = isDark ? '#94a3b8' : '#6b7280';
+    var gridColor = isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(17, 24, 39, 0.07)';
+    Chart.defaults.color = tickColor;
+    Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+    financeCharts.forEach(function(ch) {
+        ['x', 'y'].forEach(function(axis) {
+            var scale = ch.options.scales && ch.options.scales[axis];
+            if (!scale) return;
+            scale.ticks = scale.ticks || {};
+            scale.ticks.color = tickColor;
+            scale.grid = scale.grid || {};
+            if (scale.grid.display !== false) scale.grid.color = gridColor;
+            scale.grid.borderColor = gridColor;
+        });
+        ch.update();
+    });
+}
+
 // Function to toggle between dark and light modes
 document.getElementById('theme').addEventListener('change', function() {
     document.body.classList.toggle('dark-mode', this.checked); // Toggle 'dark-mode' class based on checkbox state
+    applyChartTheme(this.checked);
 });
+
+// Apply correct theme to charts on initial load
+applyChartTheme(document.body.classList.contains('dark-mode'));
 

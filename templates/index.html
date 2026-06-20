@@ -3,32 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fillter · Indian Stock Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
   <link rel="icon" href="../static/image/logo_for_tab.png">
-  <title>Stock Search</title>
 </head>
 <body>
-    <div class="loader" id="loader">
-      <div class="loader__bar"></div>
-      <div class="loader__bar"></div>
-      <div class="loader__bar"></div>
-      <div class="loader__bar"></div>
-      <div class="loader__bar"></div>
-      <div class="loader__ball"></div>
+  <div class="loader" id="loader">
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__bar"></div>
+    <div class="loader__ball"></div>
+  </div>
+
+  <header class="topbar">
+    <a href="/" class="topbar__brand" aria-label="Fillter home">
+      <i class="fas fa-filter wordmark__icon"></i>
+      <span class="wordmark"><span class="wordmark__a">Fill</span><span class="wordmark__b">ter</span></span>
+    </a>
+    <nav class="navbar">
+      <ul>
+        <li><a href="/about">About</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="hero">
+    <span class="eyebrow"><i class="fas fa-bolt"></i> NSE Stock Analyzer</span>
+    <h1 class="hero__title">Analyze any Indian stock <span class="accent">in seconds.</span></h1>
+    <p class="hero__sub">
+      Search 2,000+ NSE-listed companies for interactive price charts,
+      yearly &amp; monthly returns, and full financial statements.
+    </p>
+
+    <div id="searchContainer">
+      <i class="fas fa-search search__icon"></i>
+      <input type="text" id="searchInput" placeholder="Search a stock…" autocomplete="off">
+      <div id="cancelButton">&#10006;</div>
+      <ul id="suggestionList"></ul>
     </div>
 
-    <img src="../static/image/com_name.png" id="companyLogo" alt="Company Logo">
-    
-    <section class="home" id="home">
-      <div id="searchContainer">
-        <input type="text" id="searchInput" >
-        <div id="cancelButton">&#10006;</div>
-        <ul id="suggestionList"></ul>
+    <p class="hero__hint">Try&nbsp; Reliance Industries&nbsp; · &nbsp;TCS&nbsp; · &nbsp;HDFC Bank&nbsp; · &nbsp;Infosys</p>
+
+    <div class="features">
+      <div class="feature">
+        <span class="feature__icon"><i class="fas fa-chart-line"></i></span>
+        <h3 class="feature__title">Interactive Charts</h3>
+        <p class="feature__text">Price history from 1 week to all-time, with yearly and seasonal return breakdowns.</p>
       </div>
-    </section>
+      <div class="feature">
+        <span class="feature__icon"><i class="fas fa-history"></i></span>
+        <h3 class="feature__title">Years of History</h3>
+        <p class="feature__text">Up to a decade of monthly and yearly performance to spot long-term trends.</p>
+      </div>
+      <div class="feature">
+        <span class="feature__icon"><i class="fas fa-file-invoice-dollar"></i></span>
+        <h3 class="feature__title">Full Financials</h3>
+        <p class="feature__text">Income statement, balance sheet and cash flow — formatted in ₹ Crore.</p>
+      </div>
+    </div>
+  </main>
 
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
-  

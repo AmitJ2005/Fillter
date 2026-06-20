@@ -115,16 +115,6 @@ document.getElementById('searchInput').addEventListener('input', function() {
   var searchTerm = this.value.toLowerCase(); // Get input value and convert to lowercase
   displayStockSuggestions(searchTerm); // Display stock suggestions based on input value
 });
-// Function to expand search input field when focused
-document.getElementById('searchInput').addEventListener('focus', function() {
-  this.style.width = '350px'; // Expand input field width
-});
-// Function to collapse search input field when blurred if it's empty
-document.getElementById('searchInput').addEventListener('blur', function() {
-  if (this.value.trim() === '') {
-    this.style.width = '250px'; // Collapse input field width
-  }
-});
 // Function to redirect to visualization page
 function redirectToVisualizeData() {
   window.location.replace('/visualize_data'); // Redirect to visualization page
@@ -140,23 +130,9 @@ function handleDocumentClick(event) {
 
   // Check if the click was outside the search input and suggestion list
   if (!searchInput.contains(event.target) && !suggestionList.contains(event.target)) {
-  suggestionList.classList.remove('show'); // Hide suggestion list
-  searchInput.style.width = '250px'; // Collapse input field width
-}
+    suggestionList.classList.remove('show'); // Hide suggestion list
+  }
 }
 
 // Attach event listener for document click
 document.addEventListener('click', handleDocumentClick);
-
-function toggleMenu() {
-  var menu = document.getElementById("menu");
-  if (menu.style.display === "block") {
-      menu.style.display = "none";
-  } else {
-      menu.style.display = "block";
-  }
-}
-
-function openSupport() {
-  window.open("https://www.google.com/search?q=johnny+sins&tbm=isch", "_blank");
-}
